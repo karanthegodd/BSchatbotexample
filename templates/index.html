@@ -131,7 +131,6 @@
     </div>
 
     <script>
-        const socket = io();
         const messageForm = document.getElementById('messageForm');
         const messageInput = document.getElementById('messageInput');
         const chatContainer = document.getElementById('chatContainer');
@@ -150,20 +149,35 @@
             messageForm.dispatchEvent(new Event('submit'));
         }
 
-        messageForm.addEventListener('submit', (e) => {
+        async function sendMessage(message) {
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                const data = await response.json();
+                return data.message;
+            } catch (error) {
+                console.error('Error:', error);
+                return "I apologize, but I'm experiencing technical difficulties. Please try again.";
+            }
+        }
+
+        messageForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const message = messageInput.value.trim();
             if (message) {
                 addMessage(message, true);
-                socket.emit('send_message', { message: message });
                 messageInput.value = '';
                 typingIndicator.style.display = 'block';
+                
+                const response = await sendMessage(message);
+                typingIndicator.style.display = 'none';
+                addMessage(response);
             }
-        });
-
-        socket.on('receive_message', (data) => {
-            typingIndicator.style.display = 'none';
-            addMessage(data.message);
         });
 
         // Add welcome message

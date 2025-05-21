@@ -69,12 +69,13 @@ chatbot = BSTransportChatbot()
 def home():
     return render_template('index.html', categories=CATEGORIES)
 
-@socketio.on('send_message')
-def handle_message(data):
-    user_message = data['message']
+@app.route('/api/chat', methods=['POST'])
+def chat():
+    data = request.json
+    user_message = data.get('message', '')
     response = chatbot.get_ai_response(user_message)
-    socketio.emit('receive_message', {'message': response})
+    return jsonify({'message': response})
 
+# For local development
 if __name__ == '__main__':
-    print("Starting server on http://127.0.0.1:3030")
-    socketio.run(app, host='127.0.0.1', port=3030, debug=True) 
+    socketio.run(app, debug=True) 
