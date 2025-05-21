@@ -1,12 +1,7 @@
-from flask import Flask, request, jsonify
-import openai
-import os
-from flask_cors import CORS
 from http.server import BaseHTTPRequestHandler
 import json
-
-app = Flask(__name__)
-CORS(app)
+import os
+import openai
 
 # Configure OpenAI
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -63,28 +58,6 @@ class BSTransportChatbot:
 # Create chatbot instance
 chatbot = BSTransportChatbot()
 
-@app.route('/')
-def home():
-    return jsonify({"status": "ok", "message": "BS Transport Chatbot API is running"})
-
-@app.route('/api/chat', methods=['POST'])
-def chat():
-    try:
-        data = request.get_json()
-        if not data or 'message' not in data:
-            return jsonify({"error": "No message provided"}), 400
-        
-        user_message = data['message']
-        response = chatbot.get_ai_response(user_message)
-        return jsonify({'message': response})
-    except Exception as e:
-        print(f"Error in chat endpoint: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
-
-# For local development
-if __name__ == '__main__':
-    app.run(debug=True)
-
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
@@ -100,4 +73,38 @@ class handler(BaseHTTPRequestHandler):
             self.wfile.write(html_content.encode())
         except Exception as e:
             print(f"Error in GET handler: {str(e)}")
-            self.send_error(500, "Internal server error") 
+            self.send_error(500, "Internal server error")
+
+    def do_POST(self):
+        try:
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            data = json.loads(post_data.decode('utf-8'))
+            
+            if not data or 'message' not in data:
+                self.send_response(400)
+                self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+                self.wfile.write(json.dumps({"error": "No message provided"}).encode())
+                return
+            
+            user_message = data['message']
+            response = chatbot.get_ai_response(user_message)
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            self.wfile.write(json.dumps({'message': response}).encode())
+        except Exception as e:
+            print(f"Error in POST handler: {str(e)}")
+            self.send_error(500, "Internal server error")
+
+    def do_OPTIONS(self):
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+        self.end_headers() 
