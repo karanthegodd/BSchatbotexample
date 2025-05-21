@@ -1,6 +1,10 @@
 {
     "version": 2,
     "functions": {
+        "api/index.py": {
+            "memory": 1024,
+            "maxDuration": 10
+        },
         "api/chat.py": {
             "memory": 1024,
             "maxDuration": 10
@@ -13,7 +17,7 @@
         },
         {
             "src": "/(.*)",
-            "dest": "/api/chat.py"
+            "dest": "/api/index.py"
         }
     ]
 } 

@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 import openai
 import os
 from flask_cors import CORS
+from http.server import BaseHTTPRequestHandler
+import json
 
 app = Flask(__name__)
 CORS(app)
@@ -81,4 +83,21 @@ def chat():
 
 # For local development
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True)
+
+class handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        try:
+            # Read the HTML template
+            with open('templates/index.html', 'r') as file:
+                html_content = file.read()
+            
+            self.send_response(200)
+            self.send_header('Content-type', 'text/html')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            
+            self.wfile.write(html_content.encode())
+        except Exception as e:
+            print(f"Error in GET handler: {str(e)}")
+            self.send_error(500, "Internal server error") 
