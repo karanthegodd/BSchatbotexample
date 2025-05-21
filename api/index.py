@@ -1,8 +1,10 @@
 from flask import Flask, request, jsonify
 import openai
 import os
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 # Configure OpenAI
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -53,6 +55,7 @@ class BSTransportChatbot:
             
             return ai_response
         except Exception as e:
+            print(f"Error in get_ai_response: {str(e)}")
             return f"I apologize, but I'm experiencing technical difficulties. Please try again or contact our support team."
 
 # Create chatbot instance
@@ -64,10 +67,17 @@ def home():
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
-    data = request.json
-    user_message = data.get('message', '')
-    response = chatbot.get_ai_response(user_message)
-    return jsonify({'message': response})
+    try:
+        data = request.get_json()
+        if not data or 'message' not in data:
+            return jsonify({"error": "No message provided"}), 400
+        
+        user_message = data['message']
+        response = chatbot.get_ai_response(user_message)
+        return jsonify({'message': response})
+    except Exception as e:
+        print(f"Error in chat endpoint: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
 # For local development
 if __name__ == '__main__':
