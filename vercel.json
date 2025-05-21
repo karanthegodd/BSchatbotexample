@@ -1,5 +1,10 @@
 {
     "version": 2,
+    "build": {
+        "env": {
+            "OPENAI_API_KEY": "@openai-api-key"
+        }
+    },
     "functions": {
         "api/index.py": {
             "memory": 1024,
@@ -8,8 +13,12 @@
     },
     "routes": [
         {
+            "src": "/api/chat",
+            "dest": "api/index.py"
+        },
+        {
             "src": "/(.*)",
-            "dest": "/api/index.py"
+            "dest": "api/index.py"
         }
     ]
 } 

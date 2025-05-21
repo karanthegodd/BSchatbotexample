@@ -1,9 +1,9 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, send_from_directory
 import openai
 import os
 from flask_cors import CORS
 
-app = Flask(__name__, template_folder='templates')
+app = Flask(__name__, static_folder='templates')
 CORS(app)
 
 # Configure OpenAI
@@ -63,7 +63,7 @@ chatbot = BSTransportChatbot()
 
 @app.route('/')
 def home():
-    return render_template('index.html', categories=CATEGORIES)
+    return send_from_directory('templates', 'index.html')
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
@@ -79,7 +79,5 @@ def chat():
         print(f"Error in chat endpoint: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
 
-# We don't need the local development server part here
-# as Vercel will handle running the app
-# if __name__ == '__main__':
-#     app.run(debug=True) 
+if __name__ == '__main__':
+    app.run(debug=True, port=3000) 
